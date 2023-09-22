@@ -74,18 +74,17 @@ const styles = StyleSheet.create({
 const Welcome = () => {
 
   
-  const [loc,setLoc] = useState('')
-  const [temp,setTemp] = useState('')
+  const [loc,setLoc] = useState('_')
+  const [temp,setTemp] = useState('__')
   const [day,setDay] = useState('')
   const [date,setDate] = useState('')
   const [mon,setMon] = useState('')
-  const[cond,setCond] = useState('')
+  const[cond,setCond] = useState('_')
   const [lat,setLat] = useState('')
   const [lng,setLng] = useState('')
   const [weekdays,setDays] = useState(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]); 
   const [month,setMonth] = useState(["January","February","March","April","May","June","July",
   "August","September","October","November","December"]);
-
 
   React.useEffect(() => {(async () => {
     const {status}  = await Location.requestForegroundPermissionsAsync();
@@ -95,6 +94,10 @@ const Welcome = () => {
     const loc = await Location.getCurrentPositionAsync({});
     setLat(loc.coords.latitude);
     setLng(loc.coords.longitude);
+    })()
+  },[])
+
+  React.useEffect(() => {(async () => {
     await axios.request(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${API_KEY}`)
     .then(res => {
         setLoc(res.data.name)
@@ -128,14 +131,16 @@ const Welcome = () => {
       }
 
       const getLocation = async () => {
-        await axios.request(`https://api.openweathermap.org/data/2.5/weather?q=${loc}&units=metric&appid=${API_KEY}`)
-        .then(res => {
-            setTemp(res.data.main.temp)
-            setCond(res.data.weather[0].main)
-        })
-        .catch(err => {
-          console.log(err);
-        })
+        if(lat!=='' && lng!==''){
+          await axios.request(`https://api.openweathermap.org/data/2.5/weather?q=${loc}&units=metric&appid=${API_KEY}`)
+          .then(res => {
+              setTemp(res.data.main.temp)
+              setCond(res.data.weather[0].main)
+          })
+          .catch(err => {
+            console.log(err);
+          })
+        }
       }
 
   return (
@@ -145,7 +150,7 @@ const Welcome = () => {
       <Feather name="cloud" size={200} style={styles.cloud} color="white" />
       <Text style={styles.temp}>{temp} <MaterialCommunityIcons name="temperature-celsius" size={30} color="white" /></Text>
       <Text style={styles.status}>{cond}</Text>
-      <TextInput style={styles.input} placeholder='Enter your location' onChangeText={(text) => setLoc(text)}/>
+      <TextInput style={styles.input} placeholder='Enter your location' onChangeText={(text) => setLoc(text.trim())}/>
       <TouchableOpacity style={styles.button} onPress={getLocation}>
         <Text style={styles.buttontext}>Get Weather</Text>
       </TouchableOpacity>
